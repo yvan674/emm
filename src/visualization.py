@@ -147,10 +147,25 @@ class Visualize:
                 col=(i % self.cols) + 1
             )
 
-        fig.update_xaxes(title=self.target_columns[0],
-                         range=self.ranges['x'])
-        fig.update_yaxes(title=self.target_columns[1],
-                         range=self.ranges['y'])
+        # Temporarily remove the axis label
+        fig.update_xaxes(range=self.ranges['x'])
+        fig.update_yaxes(range=self.ranges['y'])
+
+        # Put the axis label as a title
+        fig.update_layout(
+            title={
+                'text': f"x: {self.target_columns[0]} vs. "
+                        f"y: {self.target_columns[1]}",
+                'y': 0.9,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'})
+        # fig.update_xaxes(title=self.target_columns[0],
+        #                  range=self.ranges['x'])
+        # fig.update_yaxes(title=self.target_columns[1],
+        #                  range=self.ranges['y'])
+
+
         fig.show()
 
     def _three_four_dim_visualize(self):
