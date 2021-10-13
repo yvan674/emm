@@ -33,7 +33,7 @@ class Description:
             result, result2 = [], []
             for key, value in self.description.items():
                 if isinstance(value, list):
-                    result.append(f"{int(value[0])} < {key} <= {int(value[1])}")
+                    result.append(f"{value[0]:.4g} < {key} <= {value[1]:.4g}")
                 else:
                     result.append(f"{key} = {value}")
             length = 0
