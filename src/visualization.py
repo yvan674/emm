@@ -154,13 +154,8 @@ class Visualize:
 
         # Put the axis label as a title
         fig.update_layout(
-            title={
-                'text': f"x: {self.target_columns[0]} vs. "
-                        f"y: {self.target_columns[1]}",
-                'y': 0.9,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'})
+            title=f"x: {self.target_columns[0]} vs. "
+                  f"y: {self.target_columns[1]}")
 
         return fig
 
@@ -255,7 +250,7 @@ class Visualize:
 
         if self.height is not None:
             fig.update_layout(autosize=False,
-                              height=1.3 * self.height * self.rows,
-                              width=1.2 * int(self.height / 3 * 4) * self.cols)
+                              height=self.height * self.rows,
+                              width=int(self.height / 3 * 4) * self.cols)
 
         fig.show()
