@@ -18,7 +18,7 @@ class Visualize:
                  cols: int,
                  group_size: int,
                  include_dataset: bool = True,
-                 height: int = 450):
+                 height: int = None):
         """Implements visualization of EMM results.
 
         Unfortunately,
@@ -34,7 +34,8 @@ class Visualize:
             group_size: Size of groupings.
             include_dataset: Whether or not to include the entire dataset in the
                 visualization.
-            height: Height of each plot. Defaults to 450 px.
+            height: Height of each plot. If this is given, then each plot will
+                be a 3:2 plot and auto scaling will be turned off.
         """
         self.eval_metric = eval_metric
         self.sets, self.titles = self.setup_sets_titles(include_dataset,
@@ -91,7 +92,7 @@ class Visualize:
                 col=(i % self.cols) + 1
             )
 
-        fig.show()
+        return fig
 
     def _one_dim_visualize(self, fig):
         """Visualizes one dimension as a column chart."""
@@ -107,7 +108,7 @@ class Visualize:
         fig.update_xaxes(title=self.target_columns[0])
         fig.update_yaxes(title='frequency')
 
-        fig.show()
+        return fig
 
     def _two_dim_visualize(self, fig):
         """Visualizes two dimensions as a scatter chart."""
@@ -147,7 +148,7 @@ class Visualize:
                 col=(i % self.cols) + 1
             )
 
-        # Temporarily remove the axis label
+        # Rescale axes
         fig.update_xaxes(range=self.ranges['x'])
         fig.update_yaxes(range=self.ranges['y'])
 
@@ -160,13 +161,8 @@ class Visualize:
                 'x': 0.5,
                 'xanchor': 'center',
                 'yanchor': 'top'})
-        # fig.update_xaxes(title=self.target_columns[0],
-        #                  range=self.ranges['x'])
-        # fig.update_yaxes(title=self.target_columns[1],
-        #                  range=self.ranges['y'])
 
-
-        fig.show()
+        return fig
 
     def _three_four_dim_visualize(self):
         """Visualizes three dimensions as a 3D scatter chart.
@@ -193,6 +189,8 @@ class Visualize:
             y_data = subgroup.data[self.target_columns[1]]
             z_data = subgroup.data[self.target_columns[2]]
 
+            row = math.floor(i / self.cols) + 1
+            col = (i % self.cols) + 1
             if len(self.target_columns) == 3:
                 marker_style = {'size': 4,
                                 'opacity': 0.8}
@@ -202,8 +200,8 @@ class Visualize:
                                            mode='markers',
                                            marker=marker_style,
                                            showlegend=False),
-                              row=math.floor(i / self.cols) + 1,
-                              col=(i % self.cols) + 1
+                              row=row,
+                              col=col
                               )
             elif len(self.target_columns) == 4:
                 marker_style = {'size': 4,
@@ -215,34 +213,49 @@ class Visualize:
                                            z=z_data,
                                            mode='markers',
                                            marker=marker_style),
-                              row=math.floor(i / self.cols) + 1,
-                              col=(i % self.cols) + 1
+                              row=row,
+                              col=col
                               )
 
-        fig.update_layout(scene={'xaxis_title': self.target_columns[0],
-                                 'yaxis_title': self.target_columns[1],
-                                 'zaxis_title': self.target_columns[2]})
+            fig.update_layout(scene={'xaxis_title': self.target_columns[0],
+                                     'yaxis_title': self.target_columns[1],
+                                     'zaxis_title': self.target_columns[2]},
+                              row=row,
+                              col=col)
 
-        fig.show()
+        return fig
 
     def visualize(self):
+        if self.height is not None:
+            row_heights = [self.height] * self.rows
+            col_widths = [int(self.height / 3 * 4)] * self.cols
+        else:
+            row_heights = None
+            col_widths = None
         fig = make_subplots(rows=self.rows,
                             cols=self.cols,
                             subplot_titles=self.titles,
-                            row_heights=[self.height] * self.rows)
+                            row_heights=row_heights,
+                            column_width=col_widths)
 
         if self.eval_metric.name() == "Heatmap":
-            self._heatmap_visualize(fig)
+            fig = self._heatmap_visualize(fig)
         elif len(self.target_columns) == 1:
-            self._one_dim_visualize(fig)
+            fig = self._one_dim_visualize(fig)
         elif len(self.target_columns) == 2:
-            self._two_dim_visualize(fig)
+            fig = self._two_dim_visualize(fig)
         elif len(self.target_columns) > 4:
             raise ValueError("Cannot visualize more than 4 dimensions due to "
                              "the limits of the human experience of space and "
                              "time.")
         else:
-            # I hate that this is different, but the way plotly works forces
-            # this inconsistency - Yvan
-            self._three_four_dim_visualize()
+            # I hate that this is different and doesn't take fig as an argument,
+            # but the way plotly works forces this inconsistency - Yvan
+            fig = self._three_four_dim_visualize()
 
+        if self.height is not None:
+            fig.update_layout(autosize=False,
+                              height=1.3 * self.height * self.rows,
+                              width=1.2 * int(self.height / 3 * 4) * self.cols)
+
+        fig.show()

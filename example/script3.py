@@ -19,4 +19,4 @@ if __name__ == '__main__':
     # clf = EMM(width=20, depth=4, evaluation_metric='correlation',
     #           log_level=2)
     # clf.search(df, target_cols=target_columns)
-    clf.visualize(cols=2, subgroups=3, include_dataset=True)
+    clf.visualize(cols=2, subgroups=3, include_dataset=True, height=650)
